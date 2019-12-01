@@ -1,0 +1,55 @@
+version: '3.7'
+
+# creating a network of containers
+services:
+
+  # main Flask app
+  app:
+    build: 
+      context: ./
+      dockerfile: ./setup/app/Dockerfile
+    ports:
+     - "${APP_PORT}:${APP_PORT}"
+    env_file:
+      - variables.env
+    depends_on:
+      - redis
+
+  # Celery worker
+  worker:
+    build:
+      context: ./
+      dockerfile: ./setup/worker/Dockerfile
+    env_file:
+      - variables.env
+    depends_on:
+      - redis
+
+  # Celery/Redis monitoring
+  monitor:
+    build:
+      context: ./
+      dockerfile: ./setup/monitor/Dockerfile
+    ports:
+     - "${MONITORING_PORT}:${MONITORING_PORT}"
+    env_file:
+      - variables.env
+    depends_on:
+      - redis
+
+  # Redis db
+  redis:
+    image: redis
+
+  # Postgres db for input data
+  db:
+    build:
+      context: ./
+      dockerfile: ./setup/db/Dockerfile
+    ports:
+     - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    env_file:
+      - variables.env
+    # mounting volume to store postgres data
+    volumes:
+      - ./postgres-data:/var/lib/postgresql/data

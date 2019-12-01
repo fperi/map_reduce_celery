@@ -1,0 +1,6 @@
+*.idea
+*.vagrant
+*.log
+*.DS_Store
+*__
+*postgres-data
