@@ -45,7 +45,7 @@ def home():
 def compute_min_distance():
     """
     This function queries a database and retrieves the coordinates of
-    couples of points from which it computes the minimum distance.
+    pairs of points from which it computes the minimum distance.
     The data is split into 4 groups each of which is submitted to be processed
     as a different celery task.
     """

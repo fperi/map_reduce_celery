@@ -1,4 +1,4 @@
-/* create table that contains couple of coordinates and initialise with
+/* create table that contains pairs of coordinates and initialise with
 a million random points*/
 CREATE TABLE points (
   id SERIAL UNIQUE NOT NULL,

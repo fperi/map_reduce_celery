@@ -15,7 +15,7 @@ celery = Celery('tasks', broker=REDIS_BROKER, backend=REDIS_BROKER)
 
 def compute_distance(row):
 	"""
-	This function returns the distance between couple of points in the
+	This function returns the distance between pairs of points in the
 	dataframe rows.
 	"""
 
@@ -29,8 +29,8 @@ def compute_distance(row):
 def compute_min_distance(data):
 	"""
 	This function receives a pandas dataframe as input of which the columns
-	are couples of coordinates [x1, y1, x2, y2]. It uses such coordinates to
-	compute the minimum distance between the couple of points
+	are pairs of coordinates [x1, y1, x2, y2]. It then computes the minimum
+	distance between such points.
 	"""
 
 	data = pd.read_json(data)
