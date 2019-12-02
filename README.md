@@ -58,8 +58,8 @@ endpoint queries the database and retrieves the pairs of
 coordinates. The data is split in four and submitted to independent
 Celery tasks that will compute the minimum distance between points
 of each group. If the submission goes well this endpoint will pass
-a code 200.
-- `curl -X GET http://127.0.0.1:80/get_min_distance/` once the Celery
+a code 200 and a task-id.
+- `curl -X GET http://127.0.0.1:80/get_min_distance/<task-id>` once the Celery
 tasks are done, the results are passed back to the main app and
 the overall minimum distance can be obtained with this endpoint. If
 the tasks are not finished the endpoint returns a 204. It will turn
