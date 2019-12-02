@@ -65,6 +65,14 @@ the overall minimum distance can be obtained with this endpoint. If
 the tasks are not finished the endpoint returns a 204. It will turn
 into 200 when they are all done.
 
+The repository is organised as follows:
+
+- `app/`: contains the main Flaks app
+- `code/`: contains the main code
+- `setup/`: contains the Dockerfiles and the other configuration files
+- `.env` and `variables.env`: contain the env variables used by docker and
+by the code
+
 #### Useful links
 
 ````
