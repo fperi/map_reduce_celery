@@ -1,47 +1,48 @@
 # import libraries
-import os
 import json
-import pandas as pd
-import numpy as np
-from sqlalchemy import create_engine
-from redis import StrictRedis
-from flask import Flask
-from celery import Celery
+import os
+
 import celery.states as states
+import numpy as np
+import pandas as pd
+from celery import Celery
+from flask import Flask
+from redis import StrictRedis
+from sqlalchemy import create_engine
 
-POSTGRES_USER = os.environ['POSTGRES_USER']
-POSTGRES_PASSWORD = os.environ['POSTGRES_PASSWORD']
-POSTGRES_DB = os.environ['POSTGRES_DB']
-POSTGRES_PORT = os.environ['POSTGRES_PORT']
-REDIS_HOST = os.environ['REDIS_HOST']
-REDIS_PORT = os.environ['REDIS_PORT']
-REDIS_DB = os.environ['REDIS_DB']
+POSTGRES_USER = os.environ["POSTGRES_USER"]
+POSTGRES_PASSWORD = os.environ["POSTGRES_PASSWORD"]
+POSTGRES_DB = os.environ["POSTGRES_DB"]
+POSTGRES_PORT = os.environ["POSTGRES_PORT"]
+REDIS_HOST = os.environ["REDIS_HOST"]
+REDIS_PORT = os.environ["REDIS_PORT"]
+REDIS_DB = os.environ["REDIS_DB"]
 
-REDIS_BROKER = REDIS_HOST+'://'+REDIS_HOST+':'+REDIS_PORT+'/'+REDIS_DB
-SQL_ENGINE = 'postgresql://' + POSTGRES_USER + ':' + POSTGRES_PASSWORD \
-             + '@db:' + POSTGRES_PORT + '/' + POSTGRES_DB
+REDIS_BROKER = f"{REDIS_HOST}://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
+SQL_ENGINE = (
+    f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@db:{POSTGRES_PORT}/{POSTGRES_DB}"
+)
 
 # initialise Flask
 app = Flask(__name__)
 
 # initialise redis cache
-redis_cache = StrictRedis(host=REDIS_HOST,
-                          port=REDIS_PORT,
-                          db=REDIS_DB,
-                          decode_responses=True)
+redis_cache = StrictRedis(
+    host=REDIS_HOST, port=REDIS_PORT, db=REDIS_DB, decode_responses=True
+)
 
-#initialise celery
-celery = Celery('tasks',
-                broker=REDIS_BROKER,
-                backend=REDIS_BROKER)
+# initialise celery
+celery = Celery("tasks", broker=REDIS_BROKER, backend=REDIS_BROKER)
+
 
 # health-check endpoint
-@app.route("/", methods=['GET'])
+@app.route("/", methods=["GET"])
 def home():
     return "Hello, World!\n"
 
+
 # post endpoint to compute min distance btw points in db
-@app.route("/compute_min_distance", methods=['POST'])
+@app.route("/compute_min_distance", methods=["POST"])
 def compute_min_distance():
     """
     This function queries a database and retrieves the coordinates of
@@ -60,9 +61,9 @@ def compute_min_distance():
 
         # loop over data and submit to celery tasks
         for i, d in enumerate(data_split):
-            task = celery.send_task('tasks.compute_min_distance',
-                                    args=[data_split[i].to_json()],
-                                    kwargs={})
+            task = celery.send_task(
+                "tasks.compute_min_distance", args=[data_split[i].to_json()], kwargs={}
+            )
             # create a list in redis to keep track of the tasks
             if i == 0:
                 key = "agg_" + task.id
@@ -70,26 +71,25 @@ def compute_min_distance():
 
         # return a 200 response as the job was properly submitted
         return app.response_class(
-            response=json.dumps(
-                {'status': 'task submitted',
-                 'task_id': key},
-                indent=4),
+            response=json.dumps({"status": "task submitted", "task_id": key}, indent=4),
             status=200,
-            mimetype='application/json')
+            mimetype="application/json",
+        )
 
     # return exception in case of errors
     except Exception as e:
 
         return app.response_class(
             response=json.dumps(
-                {'status': 'task not submitted',
-                 'error': str(e)},
-                indent=4),
+                {"status": "task not submitted", "error": str(e)}, indent=4
+            ),
             status=500,
-            mimetype='application/json')
+            mimetype="application/json",
+        )
+
 
 # get endpoint to retrieve the minimum distance
-@app.route("/get_min_distance/<task_id>", methods=['GET'])
+@app.route("/get_min_distance/<task_id>", methods=["GET"])
 def get_min_distance(task_id):
     """
     This function retrieves the results from the various celery tasks, each
@@ -111,11 +111,10 @@ def get_min_distance(task_id):
         # return 204 when some tasks are not ready
         if result.state == states.PENDING:
             return app.response_class(
-                response=json.dumps(
-                    {'status': 'task pending'},
-                    indent=4),
+                response=json.dumps({"status": "task pending"}, indent=4),
                 status=204,
-                mimetype='application/json')
+                mimetype="application/json",
+            )
 
         # return 200 when all tasks are finished
         elif result.state == states.SUCCESS:
@@ -124,30 +123,30 @@ def get_min_distance(task_id):
 
             return app.response_class(
                 response=json.dumps(
-                    {'status': 'task completed',
-                     'result': str(min_distance)},
-                    indent=4),
+                    {"status": "task completed", "result": str(min_distance)}, indent=4
+                ),
                 status=200,
-                mimetype='application/json')
+                mimetype="application/json",
+            )
         # return 500 when tasks failed
         else:
             # clean redis
             redis_cache.delete(str(task_id))
             return app.response_class(
-                response=json.dumps(
-                    {'status': 'something went wrong'},
-                    indent=4),
+                response=json.dumps({"status": "something went wrong"}, indent=4),
                 status=500,
-                mimetype='application/json')
+                mimetype="application/json",
+            )
     # return 500 when something goes wrong
     except Exception as e:
         return app.response_class(
             response=json.dumps(
-                {'status': 'impossible to retrieve task',
-                 'error': str(e)},
-                indent=4),
+                {"status": "impossible to retrieve task", "error": str(e)}, indent=4
+            ),
             status=500,
-            mimetype='application/json')
+            mimetype="application/json",
+        )
+
 
 if __name__ == "__main__":
     # make Flask server publicly available

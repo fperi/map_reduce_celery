@@ -5,15 +5,7 @@ database, retrieve some data, split it and process it in parallel with
 multiple Celery workers. The tasks are orchestrated by using a Redis
 cache.
 
-### Celery and Redis
-
-Celery is an asynchronous task queue/job queue based on distributed
-message passing. It focuses on real-time operation, but supports
-scheduling as well (see `http://www.celeryproject.org`).
-Redis is an open source (BSD licensed), in-memory data structure store,
-used as a database, cache and message broker (see `https://redis.io`).
-
-### What's needed
+### Requirements
 
 Docker should be the only requirement. Everything should run as
 soon as you type:
@@ -46,6 +38,16 @@ The containers can be killed with:
 docker-compose down
 ````
 
+### Structure of the repository
+
+The repository is organised as follows:
+
+- `app/`: contains the main Flaks app
+- `code/`: contains the source code
+- `setup/`: contains the Dockerfiles and the other configuration files
+- `.env` and `variables.env`: contain the env variables used by docker and
+by the code
+
 ### Further information
 
 The main functionality of the app is to retrieve pairs of coordinates
@@ -65,13 +67,31 @@ the overall minimum distance can be obtained with this endpoint. If
 the tasks are not finished the endpoint returns a 204. It will turn
 into 200 when they are all done.
 
-The repository is organised as follows:
+### Code formatting
 
-- `app/`: contains the main Flaks app
-- `code/`: contains the main code
-- `setup/`: contains the Dockerfiles and the other configuration files
-- `.env` and `variables.env`: contain the env variables used by docker and
-by the code
+The repo follows the standards of `flake8`, `black` and `isort`.
+To install the pre-commit hooks run:
+
+```
+pip install -r dev-requirements.txt
+pre-commit install
+pre-commit install -t pre-push
+```
+
+Checks can be triggered manually with the command:
+```
+pre-commit run --all-files --show-diff-on-failure
+```
+
+The package configuration is included in the `setup.cfg` and `pyproject.toml`.
+
+### Celery and Redis
+
+Celery is an asynchronous task queue/job queue based on distributed
+message passing. It focuses on real-time operation, but supports
+scheduling as well (see `http://www.celeryproject.org`).
+Redis is an open source (BSD licensed), in-memory data structure store,
+used as a database, cache and message broker (see `https://redis.io`).
 
 #### Useful links
 

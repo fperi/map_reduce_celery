@@ -5,7 +5,7 @@ services:
 
   # main Flask app
   app:
-    build: 
+    build:
       context: ./
       dockerfile: ./setup/app/Dockerfile
     ports:
